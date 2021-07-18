@@ -1,0 +1,129 @@
+<html>
+
+<head>
+    <Title>Test Ad Player</Title>
+    <link href="https://vjs.zencdn.net/7.11.4/video-js.css" rel="stylesheet" />
+    <link href="/node_modules/videojs-ima/dist/videojs.ima.css" />
+    <link href="/node_modules/videojs-contrib-ads/dist//videojs.ads.css" />
+</head>
+
+<body>
+    Video Source: <input type="text" id="videoSource">
+    <br>
+    Video Type: <input type="text" id="videoType">
+    <br> video/mp4, video/webm
+    <br>
+    <br>
+    Ad Tag: <input type="text" id="adTag">
+    <br>
+    <input type="button" id="loadBtn" value="load"">
+
+    Player:
+    <video-js id="my-video" width=600 height=300 class="vjs-default-skin" controls>
+        <source
+            src="https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Big_Buck_Bunny_4K.webm/Big_Buck_Bunny_4K.webm.360p.vp9.webm"
+            type="video/webm">
+    </video-js>
+
+    <script src="//imasdk.googleapis.com/js/sdkloader/ima3.js"></script>
+    <script src="https://vjs.zencdn.net/7.11.4/video.min.js"></script>
+    <script src="node_modules/videojs-contrib-ads/dist/videojs.ads.js"></script>
+    <script src="node_modules/videojs-ima/dist/videojs.ima.js"></script>
+
+    <script>
+        var player = videojs('my-video');
+        
+        document.getElementById("videoSource").value = "https://upload.wikimedia.org/wikipedia/commons/transcoded/c/c0/Big_Buck_Bunny_4K.webm/Big_Buck_Bunny_4K.webm.360p.vp9.webm";
+        document.getElementById("videoType").value = "video/webm" ;
+        document.getElementById("adTag").value = "https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/single_ad_samples&ciu_szs=300x250&impl=s&gdfp_req=1&env=vp&output=vast&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ct%3Dskippablelinear&correlator=";
+
+        document.getElementById("loadBtn").addEventListener("click", function(){
+            console.log(player)
+            videoSource = document.getElementById("videoSource").value;
+            videoType = document.getElementById("videoType").value;
+            adTag = document.getElementById("adTag").value;
+
+
+            
+
+            player.ima.changeAdTag(adTag);
+
+            console.log(videoSource, videoType)
+            player.src({
+                type: videoType,
+                src: videoSource
+            });
+            player.ima.initializeAdDisplayContainer();
+            player.ima.requestAds();
+            player.load();
+        });
+
+        let videoSource = document.getElementById("videoSource").value;
+        let videoType = document.getElementById("videoType").value;
+        let adTag = document.getElementById("adTag").value;
+
+        var options = {
+                id: "my-video",
+                adTagUrl: adTag,
+                adsManagerLoadedCallback: onAdsManagerLoaded,
+            };
+
+        player.ima(options);
+
+
+
+        function playVideo() {
+            
+        }
+
+        // Remove controls from the player on iPad to stop native controls from stealing
+        // our click
+        var contentPlayer = document.getElementById('content_video_html5_api');
+        if ((navigator.userAgent.match(/iPad/i) ||
+            navigator.userAgent.match(/Android/i)) &&
+            contentPlayer.hasAttribute('controls')) {
+            contentPlayer.removeAttribute('controls');
+        }
+
+        // Initialize the ad container when the video player is clicked, but only the
+        // first time it's clicked.
+        var startEvent = 'click';
+        if (navigator.userAgent.match(/iPhone/i) ||
+            navigator.userAgent.match(/iPad/i) ||
+            navigator.userAgent.match(/Android/i)) {
+            startEvent = 'tap';
+        }
+
+        player.one(startEvent, function () {
+            // alert('hello I am being tapped from mobile');
+            player.ima.initializeAdDisplayContainer();
+            // player.ima.requestAds();
+            player.play();
+        });
+
+        var onAdsManagerLoaded = function () {
+            
+        };
+
+        player.on('ads-manager', function (response) {
+            var adsManager = response.adsManager;
+            player.ima.addEventListener(google.ima.AdEvent.Type.ALL_ADS_COMPLETED,
+                event => {
+                    console.log('ENDED event');
+                    player.play();
+                    adsManager.destroy();
+                }
+            );
+            player.ima.addEventListener(google.ima.AdEvent.Type.LOADED,
+                event => {
+                    console.log('LOADED event');
+                }
+            );
+        })
+
+
+
+    </script>
+</body>
+
+</html>
